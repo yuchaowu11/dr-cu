@@ -1,6 +1,7 @@
 #include "Database.h"
 #include "rsyn/io/parser/lef_def/DEFControlParser.h"
 #include "single_net/PinTapConnector.h"
+#include <fstream>
 
 db::Database database;
 
@@ -38,6 +39,67 @@ void Database::init() {
     log() << "MEM: cur=" << utils::mem_use::get_current() << "MB, peak=" << utils::mem_use::get_peak() << "MB"
           << std::endl;
     log() << std::endl;
+}
+
+void Database::loadBalanceGroups(const std::string& filename) {
+    if (filename.empty()) return;
+    std::ifstream ifs(filename);
+    if (!ifs) {
+        log() << "Warning: cannot open balance file " << filename << std::endl;
+        return;
+    }
+    std::string token;
+    while (ifs >> token) {
+        if (token == "BALANCE_GROUP") continue;
+        if (token.find('{') != std::string::npos) {
+            std::vector<int> group;
+            // remove leading '{'
+            if (token.size() > 1) {
+                std::string name = token.substr(1);
+                if (!name.empty() && name != "}") {
+                    for (int i = 0; i < nets.size(); ++i)
+                        if (nets[i].getName() == name) {
+                            group.push_back(i);
+                            nets[i].balanceGroup = balanceGroups.size();
+                            break;
+                        }
+                }
+                if (token.back() == '}') {
+                    balanceGroups.push_back(group);
+                    continue;
+                }
+            }
+            while (ifs >> token) {
+                if (token == "}") break;
+                std::string name = token;
+                if (token.back() == '}') {
+                    name = token.substr(0, token.size() - 1);
+                }
+                for (int i = 0; i < nets.size(); ++i) {
+                    if (nets[i].getName() == name) {
+                        group.push_back(i);
+                        nets[i].balanceGroup = balanceGroups.size();
+                        break;
+                    }
+                }
+                if (token.back() == '}') break;
+            }
+            if (!group.empty()) balanceGroups.push_back(group);
+        }
+    }
+}
+
+void Database::updateBalanceTargets() {
+    if (balanceGroups.empty()) return;
+    for (auto& net : nets) {
+        net.routedWireLength = net.calcWireLength();
+    }
+    for (size_t g = 0; g < balanceGroups.size(); ++g) {
+        DBU sum = 0;
+        for (int idx : balanceGroups[g]) sum += nets[idx].routedWireLength;
+        DBU avg = balanceGroups[g].empty() ? 0 : sum / static_cast<DBU>(balanceGroups[g].size());
+        for (int idx : balanceGroups[g]) nets[idx].balanceTarget = avg;
+    }
 }
 
 void Database::writeDEF(const std::string& filename) {

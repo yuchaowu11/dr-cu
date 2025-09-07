@@ -3,6 +3,7 @@
 #include <fstream>
 
 #include "Setting.h"
+#include "Database.h"
 
 namespace db {
     
@@ -112,6 +113,22 @@ void Net::reset() {
     routeGuideVios = (routeGuideVios_copy);
     routeGuideRTrees = (routeGuideRTrees_copy);
     gridTopo = gridTopo_copy;
+}
+
+DBU Net::calcWireLength() const {
+    DBU length = 0;
+    postOrderVisitGridTopo([&](std::shared_ptr<GridSteiner> node) {
+        if (node->parent) {
+            db::GridEdge edge(*node, *(node->parent));
+            auto loc = database.getLoc(edge);
+            length += std::abs(loc.first.x - loc.second.x) + std::abs(loc.first.y - loc.second.y);
+        }
+        if (node->extWireSeg) {
+            auto loc = database.getLoc(*(node->extWireSeg));
+            length += std::abs(loc.first.x - loc.second.x) + std::abs(loc.first.y - loc.second.y);
+        }
+    });
+    return length;
 }
 
 void Net::initPinAccessBoxes(Rsyn::Pin rsynPin, RsynService& rsynService, vector<BoxOnLayer>& accessBoxes, const DBU libDBU) {
