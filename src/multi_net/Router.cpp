@@ -72,6 +72,24 @@ void Router::run() {
             unfinish();
         }
     }
+
+    if (database.hasBalance()) {
+        database.updateBalanceTargets();
+        std::vector<int> balanceNets;
+        for (const auto& group : database.balanceGroups) {
+            for (int idx : group) {
+                if (database.nets[idx].routedWireLength < database.nets[idx].balanceTarget) {
+                    balanceNets.push_back(idx);
+                }
+            }
+        }
+        if (!balanceNets.empty()) {
+            log() << "Start length balancing" << std::endl;
+            updateCost(balanceNets);
+            ripup(balanceNets);
+            route(balanceNets);
+        }
+    }
     finish();
     log() << std::endl;
     log() << "################################################################" << std::endl;

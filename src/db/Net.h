@@ -41,6 +41,12 @@ class Net : public NetBase {
 public:
     Net(int i, Rsyn::Net net, RsynService& rsynService);
 
+    // length balancing
+    int balanceGroup = -1;           // index of balance group, -1 if none
+    DBU routedWireLength = 0;        // current routed wirelength
+    DBU balanceTarget = 0;           // target wirelength for balancing
+    DBU calcWireLength() const;      // utility to compute routed wirelength
+
     // more route guide information
     vector<int> routeGuideVios;
     RTrees routeGuideRTrees;

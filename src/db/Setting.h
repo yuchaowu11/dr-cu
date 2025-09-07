@@ -34,6 +34,9 @@ public:
     double wrongWayPenaltyCoeff = 4;  // at least weightWrongWayWirelength / weightWirelength + 1 = 3
     bool fixOpenBySST = true;
 
+    // length balancing
+    double lengthBalanceCoeff = 0.0;  // weight for net length balancing penalty
+
     // db
     VerboseLevelT dbVerbose = VerboseLevelT::MIDDLE;
     int maxNumWarnForEachRouteStatus = 5;

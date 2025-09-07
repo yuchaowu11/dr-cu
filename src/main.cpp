@@ -27,6 +27,10 @@ void runISPD18Flow(const boost::program_options::variables_map& vm) {
     db::setting.numThreads = vm.at("threads").as<int>();
     db::setting.tat = vm.at("tat").as<int>();
     db::setting.outputFile = vm.at("output").as<std::string>();
+    std::string balanceFile;
+    if (vm.count("balance")) {
+        balanceFile = vm.at("balance").as<std::string>();
+    }
     // optional
     // multi_net
     if (vm.count("multiNetVerbose")) {
@@ -70,6 +74,9 @@ void runISPD18Flow(const boost::program_options::variables_map& vm) {
     if (vm.count("fixOpenBySST")) {
         db::setting.fixOpenBySST = vm.at("fixOpenBySST").as<bool>();
     }
+    if (vm.count("lengthBalanceCoeff")) {
+        db::setting.lengthBalanceCoeff = vm.at("lengthBalanceCoeff").as<double>();
+    }
     // db
     if (vm.count("dbVerbose")) {
         db::setting.dbVerbose = db::VerboseLevelT::_from_string(vm.at("dbVerbose").as<std::string>().c_str());
@@ -112,6 +119,9 @@ void runISPD18Flow(const boost::program_options::variables_map& vm) {
 
     // Route
     database.init();
+    if (!balanceFile.empty()) {
+        database.loadBalanceGroups(balanceFile);
+    }
     db::setting.adapt();
     Router router;
     router.run();
@@ -155,6 +165,7 @@ int main(int argc, char* argv[]) {
                 ("threads", value<int>()->required(), "# of threads")
                 ("tat", value<int>()->required(), "Runtime limit (sec)")
                 ("output", value<std::string>()->required(), "Output file name")
+                ("balance", value<std::string>(), "Input file defining balance groups")
                 // optional
                 ("multiNetVerbose", value<std::string>())
                 ("multiNetScheduleSortAll", value<bool>())
@@ -169,6 +180,7 @@ int main(int argc, char* argv[]) {
                 ("wrongWayPointDensity", value<double>())
                 ("wrongWayPenaltyCoeff", value<double>())
                 ("fixOpenBySST", value<bool>())
+                ("lengthBalanceCoeff", value<double>())
                 ("dbVerbose", value<std::string>())
                 ("dbUsePoorViaMapThres", value<int>())
                 ("dbPoorWirePenaltyCoeff", value<double>())
