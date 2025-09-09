@@ -3,6 +3,7 @@
 #include <limits>
 
 ostream &operator<<(ostream &os, const Solution &sol) {
+    os << "cost=" << sol.cost << ", len=" << sol.len << ", vertex=" << sol.vertex
     os << "cost=" << sol.cost << ", len=" << sol.len << ", wire=" << sol.wireLen << ", vertex=" << sol.vertex
        << ", prev=" << (sol.prev ? sol.prev->vertex : -1);
     return os;
@@ -47,6 +48,7 @@ db::RouteStatus MazeRoute::route(int startPin) {
     for (auto vertex : graph.getVertices(startPin)) {
         DBU minLen = graph.isFakePin(vertex) ? 0 : database.getLayer(graph.getGridPoint(vertex).layerIdx).getMinLen();
         updateSol(std::make_shared<Solution>(
+            graph.getVertexCost(vertex), minLen, graph.getVertexCost(vertex), vertex, nullptr));
             graph.getVertexCost(vertex), minLen, 0, graph.getVertexCost(vertex), vertex, nullptr));
     }
     std::unordered_set<int> visitedPin = {startPin};
@@ -73,8 +75,7 @@ db::RouteStatus MazeRoute::route(int startPin) {
             if (vertexCostUBs[u] < newSol->cost) continue;
 
             const db::MetalLayer &uLayer = database.getLayer(graph.getGridPoint(u).layerIdx);
-
-            for (auto direction : directions) {
+@@ -77,110 +78,132 @@ db::RouteStatus MazeRoute::route(int startPin) {
                 if (!graph.hasEdge(u, direction) ||
                     (newSol->prev && graph.getEdgeEndPoint(u, direction) == newSol->prev->vertex)) {
                     continue;
@@ -114,6 +115,8 @@ db::RouteStatus MazeRoute::route(int startPin) {
                     utils::IntervalT<int> trackRange = uPoint.trackIdx < vPoint.trackIdx
                                                            ? utils::IntervalT<int>(uPoint.trackIdx, vPoint.trackIdx)
                                                            : utils::IntervalT<int>(vPoint.trackIdx, uPoint.trackIdx);
+                    newLen += uLayer.getCrossPointRangeDist(cpRange);
+                    newLen += uLayer.pitch * trackRange.range();
                     DBU dist = uLayer.getCrossPointRangeDist(cpRange) + uLayer.pitch * trackRange.range();
                     newLen += dist;
                     edgeDist = dist;
@@ -132,6 +135,10 @@ db::RouteStatus MazeRoute::route(int startPin) {
                         potentialPenalty = database.getUnitMinAreaVioCost();
                     }
                 }
+                // if (newCost < vertexCostUBs[v] && !(newCost == vertexCostLBs[v] && (newCost + potentialPenalty) ==
+                // vertexCostUBs[v])) {
+                if (newCost < vertexCostUBs[v]) {
+                    updateSol(std::make_shared<Solution>(newCost, newLen, newCost + potentialPenalty, v, newSol));
                 DBU newWireLen = newSol->wireLen + edgeDist;
                 db::CostT finalCost = newCost;
                 if (localNet.dbNet.balanceGroup >= 0) {
@@ -146,9 +153,11 @@ db::RouteStatus MazeRoute::route(int startPin) {
                         }
                     }
                     if (estRemain == std::numeric_limits<DBU>::max()) estRemain = 0;
-                    double diff = static_cast<double>(newWireLen + estRemain) -
-                                  static_cast<double>(localNet.dbNet.balanceTarget);
-                    finalCost += diff * diff * db::setting.lengthBalanceCoeff;
+                    DBU total = newWireLen + estRemain;
+                    if (total < localNet.dbNet.balanceTarget) {
+                        double diff = static_cast<double>(localNet.dbNet.balanceTarget - total);
+                        finalCost += diff * diff * db::setting.lengthBalanceCoeff;
+                    }
                 }
                 if (finalCost < vertexCostUBs[v]) {
                     updateSol(std::make_shared<Solution>(finalCost, newLen, newWireLen,
@@ -169,6 +178,7 @@ db::RouteStatus MazeRoute::route(int startPin) {
         auto tmp = dstVertex;
         while (tmp && tmp->cost != 0) {
             DBU minLen = database.getLayer(graph.getGridPoint(tmp->vertex).layerIdx).getMinLen();
+            updateSol(std::make_shared<Solution>(0, minLen, 0, tmp->vertex, tmp->prev));
             updateSol(std::make_shared<Solution>(0, minLen, tmp->wireLen, 0, tmp->vertex, tmp->prev));
             tmp = tmp->prev;
         }
@@ -179,6 +189,7 @@ db::RouteStatus MazeRoute::route(int startPin) {
             DBU minLen =
                 graph.isFakePin(vertex) ? 0 : database.getLayer(graph.getGridPoint(vertex).layerIdx).getMinLen();
             updateSol(std::make_shared<Solution>(
+                graph.getVertexCost(vertex), minLen, graph.getVertexCost(vertex), vertex, nullptr));
                 graph.getVertexCost(vertex), minLen, 0, graph.getVertexCost(vertex), vertex, nullptr));
         }
 
