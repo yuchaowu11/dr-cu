@@ -15,8 +15,17 @@ vector<vector<int>> &Scheduler::schedule() {
         routerIds.push_back(id);
     }
     if (db::setting.multiNetScheduleSortAll) {
+        auto getPriority = [&](int id) {
+            double p = routers[id].localNet.estimatedNumOfVertices;
+            const auto &net = routers[id].dbNet;
+            DBU len = net.routedWireLength ? net.routedWireLength : net.manhattanLength;
+            if (net.balanceGroup >= 0 && len < net.balanceTarget) {
+                p *= 0.5;  // lower priority for shorter nets
+            }
+            return p;
+        };
         std::sort(routerIds.begin(), routerIds.end(), [&](int lhs, int rhs) {
-            return routers[lhs].localNet.estimatedNumOfVertices > routers[rhs].localNet.estimatedNumOfVertices;
+            return getPriority(lhs) > getPriority(rhs);
         });
     }
 
@@ -49,11 +58,20 @@ vector<vector<int>> &Scheduler::schedule() {
             }
         }
 
-        // sort within batches by NumOfVertices
+        // sort within batches by NumOfVertices (with balance priority)
         if (db::setting.multiNetScheduleSort) {
+            auto getPriority = [&](int id) {
+                double p = routers[id].localNet.estimatedNumOfVertices;
+                const auto &net = routers[id].dbNet;
+                DBU len = net.routedWireLength ? net.routedWireLength : net.manhattanLength;
+                if (net.balanceGroup >= 0 && len < net.balanceTarget) {
+                    p *= 0.5;
+                }
+                return p;
+            };
             for (auto &batch : batches) {
                 std::sort(batch.begin(), batch.end(), [&](int lhs, int rhs) {
-                    return routers[lhs].localNet.estimatedNumOfVertices > routers[rhs].localNet.estimatedNumOfVertices;
+                    return getPriority(lhs) > getPriority(rhs);
                 });
             }
         }
