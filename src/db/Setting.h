@@ -35,7 +35,8 @@ public:
     bool fixOpenBySST = true;
 
     // length balancing
-    double lengthBalanceCoeff = 0.0;  // weight for net length balancing penalty
+    double lengthBalanceCoeff = 0.0;    // weight for net length balancing penalty
+    DBU lengthBalanceTolerance = 0;     // tolerance for net wirelength difference
 
     // db
     VerboseLevelT dbVerbose = VerboseLevelT::MIDDLE;
