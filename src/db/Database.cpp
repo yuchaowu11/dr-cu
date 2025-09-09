@@ -96,7 +96,15 @@ void Database::updateBalanceTargets() {
     }
     for (size_t g = 0; g < balanceGroups.size(); ++g) {
         DBU sum = 0;
-        for (int idx : balanceGroups[g]) sum += nets[idx].routedWireLength;
+        bool allUnrouted = true;
+        for (int idx : balanceGroups[g]) {
+            sum += nets[idx].routedWireLength;
+            if (nets[idx].routedWireLength > 0) allUnrouted = false;
+        }
+        if (allUnrouted) {
+            sum = 0;
+            for (int idx : balanceGroups[g]) sum += nets[idx].manhattanLength;
+        }
         DBU avg = balanceGroups[g].empty() ? 0 : sum / static_cast<DBU>(balanceGroups[g].size());
         for (int idx : balanceGroups[g]) nets[idx].balanceTarget = avg;
     }

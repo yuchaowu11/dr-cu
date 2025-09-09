@@ -44,8 +44,11 @@ public:
     // length balancing
     int balanceGroup = -1;           // index of balance group, -1 if none
     DBU routedWireLength = 0;        // current routed wirelength
+    DBU manhattanLength = 0;         // Manhattan length estimate
     DBU balanceTarget = 0;           // target wirelength for balancing
     DBU calcWireLength() const;      // utility to compute routed wirelength
+    DBU calcManhattanLength() const; // utility to compute Manhattan length
+
 
     // more route guide information
     vector<int> routeGuideVios;
