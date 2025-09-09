@@ -65,6 +65,7 @@ vector<vector<int>> &Scheduler::schedule() {
                 const auto &net = routers[id].dbNet;
                 DBU len = net.routedWireLength ? net.routedWireLength : net.manhattanLength;
                 if (net.balanceGroup >= 0 && len < net.balanceTarget) {
+
                     p *= 0.5;
                 }
                 return p;

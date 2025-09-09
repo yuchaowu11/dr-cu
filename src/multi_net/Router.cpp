@@ -79,9 +79,14 @@ void Router::run() {
     if (database.hasBalance()) {
         database.updateBalanceTargets();
         std::vector<int> balanceNets;
+
+        DBU tolerance = db::setting.lengthBalanceTolerance;
         for (const auto& group : database.balanceGroups) {
             for (int idx : group) {
-                if (database.nets[idx].routedWireLength < database.nets[idx].balanceTarget) {
+                DBU wl = database.nets[idx].routedWireLength;
+                DBU target = database.nets[idx].balanceTarget;
+                DBU diff = (wl > target) ? wl - target : target - wl;
+                if (diff > tolerance) {
                     balanceNets.push_back(idx);
                 }
             }

@@ -73,8 +73,7 @@ db::RouteStatus MazeRoute::route(int startPin) {
             if (vertexCostUBs[u] < newSol->cost) continue;
 
             const db::MetalLayer &uLayer = database.getLayer(graph.getGridPoint(u).layerIdx);
-
-            for (auto direction : directions) {
+            for (auto direction : directions) {    
                 if (!graph.hasEdge(u, direction) ||
                     (newSol->prev && graph.getEdgeEndPoint(u, direction) == newSol->prev->vertex)) {
                     continue;
@@ -147,10 +146,9 @@ db::RouteStatus MazeRoute::route(int startPin) {
                     }
                     if (estRemain == std::numeric_limits<DBU>::max()) estRemain = 0;
                     DBU total = newWireLen + estRemain;
-                    if (total < localNet.dbNet.balanceTarget) {
-                        double diff = static_cast<double>(localNet.dbNet.balanceTarget - total);
-                        finalCost += diff * diff * db::setting.lengthBalanceCoeff;
-                    }
+                    double diff = static_cast<double>(total - localNet.dbNet.balanceTarget);
+                    finalCost += diff * diff * db::setting.lengthBalanceCoeff;
+
                 }
                 if (finalCost < vertexCostUBs[v]) {
                     updateSol(std::make_shared<Solution>(finalCost, newLen, newWireLen,
