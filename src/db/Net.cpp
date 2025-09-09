@@ -3,6 +3,7 @@
 #include <fstream>
 
 #include "Setting.h"
+#include "Database.h"
 
 namespace db {
     
@@ -114,6 +115,38 @@ void Net::reset() {
     gridTopo = gridTopo_copy;
 }
 
+DBU Net::calcWireLength() const {
+    DBU length = 0;
+    postOrderVisitGridTopo([&](std::shared_ptr<GridSteiner> node) {
+        if (node->parent) {
+            db::GridEdge edge(*node, *(node->parent));
+            auto loc = database.getLoc(edge);
+            length += std::abs(loc.first.x - loc.second.x) + std::abs(loc.first.y - loc.second.y);
+        }
+        if (node->extWireSeg) {
+            auto loc = database.getLoc(*(node->extWireSeg));
+            length += std::abs(loc.first.x - loc.second.x) + std::abs(loc.first.y - loc.second.y);
+        }
+    });
+    return length;
+}
+
+DBU Net::calcManhattanLength() const {
+    if (pinAccessBoxes.empty()) return 0;
+    DBU minX = std::numeric_limits<DBU>::max();
+    DBU maxX = std::numeric_limits<DBU>::min();
+    DBU minY = std::numeric_limits<DBU>::max();
+    DBU maxY = std::numeric_limits<DBU>::min();
+    for (int i = 0; i < pinAccessBoxes.size(); ++i) {
+        BoxOnLayer box = getMaxAccessBox(i);
+        minX = std::min(minX, box.cx());
+        maxX = std::max(maxX, box.cx());
+        minY = std::min(minY, box.cy());
+        maxY = std::max(maxY, box.cy());
+    }
+    return (maxX - minX) + (maxY - minY);
+}
+
 void Net::initPinAccessBoxes(Rsyn::Pin rsynPin, RsynService& rsynService, vector<BoxOnLayer>& accessBoxes, const DBU libDBU) {
     // PhysicalPort
     if (rsynPin.isPort()) {
@@ -196,6 +229,7 @@ void NetList::init(RsynService& rsynService) {
                 break;
         }
         nets.emplace_back(nets.size(), net, rsynService);
+        nets.back().manhattanLength = nets.back().calcManhattanLength();
         numPins += nets.back().pinAccessBoxes.size();
     }
     if (setting.dbVerbose >= +db::VerboseLevelT::MIDDLE) {

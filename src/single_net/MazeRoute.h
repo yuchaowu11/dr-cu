@@ -6,12 +6,13 @@ class Solution {
 public:
     db::CostT cost;
     DBU len;           // length on current track
+    DBU wireLen;       // total wirelength so far
     db::CostT costUB;  // cost upper bound
     int vertex;
     std::shared_ptr<Solution> prev;
 
-    Solution(db::CostT c, DBU l, db::CostT ub, int v, const std::shared_ptr<Solution> &p)
-        : cost(c), len(l), costUB(ub), vertex(v), prev(p) {}
+    Solution(db::CostT c, DBU l, DBU wl, db::CostT ub, int v, const std::shared_ptr<Solution> &p)
+        : cost(c), len(l), wireLen(wl), costUB(ub), vertex(v), prev(p) {}
 
     friend ostream &operator<<(ostream &os, const Solution &sol);
 };
