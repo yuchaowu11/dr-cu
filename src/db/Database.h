@@ -20,6 +20,13 @@ class Database : public RouteGrid, public NetList {
 public:
     utils::BoxT<DBU> dieRegion;
 
+    // length balancing groups: group -> net indices
+    std::vector<std::vector<int>> balanceGroups;
+
+    void loadBalanceGroups(const std::string& filename);
+    void updateBalanceTargets();
+    bool hasBalance() const { return !balanceGroups.empty(); }
+
     void init();
     void clear() { RouteGrid::clear(); }
     void reset() { RouteGrid::reset(); }
