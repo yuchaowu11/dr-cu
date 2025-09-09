@@ -15,6 +15,7 @@ parser.add_argument('benchmarks', choices=all_benchmarks.get_choices(), nargs='+
 parser.add_argument('-s', '--steps', choices=['route', 'eval', 'view'], nargs='+', default=['route'])
 parser.add_argument('-p', '--benchmark_path')
 parser.add_argument('-t', '--threads', type=int, default=8)
+parser.add_argument('-b', '--balance', help='Path to balance group file')
 args = parser.parse_args()
 
 # seleted benchmarks
@@ -37,8 +38,9 @@ print('The following benchmarks will be ran: ', bms)
 
 
 def route():
-    run('/usr/bin/time -v ./{0} -lef {1}.input.lef -def {1}.input.def {2} -threads {3} -tat 2000000000 -output {4}.solution.def |& tee {4}.log'.format(
-        binary, file_name_prefix, guide_opt, args.threads, bm.full_name))
+    
+    run('/usr/bin/time -v ./{0} -lef {1}.input.lef -def {1}.input.def {2} {5} -threads {3} -tat 2000000000 -output {4}.solution.def |& tee {4}.log'.format(
+        binary, file_name_prefix, guide_opt, args.threads, bm.full_name, balance_opt))
 
     run('mv *.solution.def* *.log *.gprof *.pdf {} 2>/dev/null'.format(bm_log_dir))
 
@@ -80,8 +82,10 @@ for bm in bms:
     file_name_prefix = '{0}/ispd20{1}/{2}/{2}'.format(bm_path, bm.full_name[4:6], bm.full_name)
     if bm.abbr_name in ['9t1', '9t2', '9t3', '9t6']:
         guide_opt = '-guide {0}.guide'.format(file_name_prefix)
+        balance_opt = '-balance {0}.balance'.format(file_name_prefix)
     else:
         guide_opt = '-guide {0}.input.guide'.format(file_name_prefix)
+        balance_opt = '-balance {0}.input.balance'.format(file_name_prefix)
 
     run('mkdir -p {}'.format(bm_log_dir))
     if 'route' in args.steps:
