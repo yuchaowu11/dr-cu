@@ -131,7 +131,6 @@ DBU Net::calcWireLength() const {
     return length;
 }
 
-
 DBU Net::calcManhattanLength() const {
     if (pinAccessBoxes.empty()) return 0;
     DBU minX = std::numeric_limits<DBU>::max();

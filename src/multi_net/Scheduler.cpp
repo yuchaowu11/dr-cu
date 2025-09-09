@@ -18,7 +18,8 @@ vector<vector<int>> &Scheduler::schedule() {
         auto getPriority = [&](int id) {
             double p = routers[id].localNet.estimatedNumOfVertices;
             const auto &net = routers[id].dbNet;
-            if (net.balanceGroup >= 0 && net.routedWireLength < net.balanceTarget) {
+            DBU len = net.routedWireLength ? net.routedWireLength : net.manhattanLength;
+            if (net.balanceGroup >= 0 && len < net.balanceTarget) {
                 p *= 0.5;  // lower priority for shorter nets
             }
             return p;
@@ -62,7 +63,9 @@ vector<vector<int>> &Scheduler::schedule() {
             auto getPriority = [&](int id) {
                 double p = routers[id].localNet.estimatedNumOfVertices;
                 const auto &net = routers[id].dbNet;
-                if (net.balanceGroup >= 0 && net.routedWireLength < net.balanceTarget) {
+                DBU len = net.routedWireLength ? net.routedWireLength : net.manhattanLength;
+                if (net.balanceGroup >= 0 && len < net.balanceTarget) {
+
                     p *= 0.5;
                 }
                 return p;

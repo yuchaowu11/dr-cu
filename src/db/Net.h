@@ -49,7 +49,6 @@ public:
     DBU calcWireLength() const;      // utility to compute routed wirelength
     DBU calcManhattanLength() const; // utility to compute Manhattan length
 
-
     // more route guide information
     vector<int> routeGuideVios;
     RTrees routeGuideRTrees;

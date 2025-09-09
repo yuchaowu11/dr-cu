@@ -41,7 +41,6 @@ def route():
     
     run('/usr/bin/time -v ./{0} -lef {1}.input.lef -def {1}.input.def {2} {5} -threads {3} -tat 2000000000 -output {4}.solution.def |& tee {4}.log'.format(
         binary, file_name_prefix, guide_opt, args.threads, bm.full_name, balance_opt))
-
     run('mv *.solution.def* *.log *.gprof *.pdf {} 2>/dev/null'.format(bm_log_dir))
 
 

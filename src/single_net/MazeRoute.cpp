@@ -148,6 +148,7 @@ db::RouteStatus MazeRoute::route(int startPin) {
                     DBU total = newWireLen + estRemain;
                     double diff = static_cast<double>(total - localNet.dbNet.balanceTarget);
                     finalCost += diff * diff * db::setting.lengthBalanceCoeff;
+
                 }
                 if (finalCost < vertexCostUBs[v]) {
                     updateSol(std::make_shared<Solution>(finalCost, newLen, newWireLen,

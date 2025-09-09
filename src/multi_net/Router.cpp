@@ -28,6 +28,9 @@ ostream& operator<<(ostream& os, const MTStat mtStat) {
 
 void Router::run() {
     allNetStatus.resize(database.nets.size(), db::RouteStatus::FAIL_UNPROCESSED);
+    if (database.hasBalance()) {
+        database.updateBalanceTargets();
+    }
     for (iter = 0; iter < db::setting.rrrIterLimit; iter++) {
         log() << std::endl;
         log() << "################################################################" << std::endl;
@@ -76,6 +79,7 @@ void Router::run() {
     if (database.hasBalance()) {
         database.updateBalanceTargets();
         std::vector<int> balanceNets;
+
         DBU tolerance = db::setting.lengthBalanceTolerance;
         for (const auto& group : database.balanceGroups) {
             for (int idx : group) {
