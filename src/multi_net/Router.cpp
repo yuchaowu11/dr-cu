@@ -163,6 +163,19 @@ void Router::route(const vector<int>& netsToRoute) {
     }
     Scheduler scheduler(routers);
     const vector<vector<int>>& batches = scheduler.schedule();
+
+    // print all batches
+    for (size_t i = 0; i < batches.size(); ++i) {
+        std::cout << "Batch " << i + 1 << ": ";
+        for (int item : batches[i]) {
+            std::cout << item << " ";
+            // get the net's name
+            std::cout << "(" << routers[item].dbNet.getName() << ") ";
+            
+        }
+        std::cout << std::endl;
+    }
+    
     if (db::setting.multiNetVerbose >= +db::VerboseLevelT::MIDDLE) {
         log() << "Finish multi-thread scheduling" << ((db::setting.numThreads == 0) ? " using simple mode" : "")
               << ". There will be " << batches.size() << " batches." << std::endl;

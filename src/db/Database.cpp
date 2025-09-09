@@ -95,18 +95,18 @@ void Database::updateBalanceTargets() {
         net.routedWireLength = net.calcWireLength();
     }
     for (size_t g = 0; g < balanceGroups.size(); ++g) {
-        DBU sum = 0;
-        bool allUnrouted = true;
+        DBU max = 0;
+
         for (int idx : balanceGroups[g]) {
-            sum += nets[idx].routedWireLength;
-            if (nets[idx].routedWireLength > 0) allUnrouted = false;
+            if (nets[idx].routedWireLength == 0) wl = nets[idx].manhattanLength;
+            else wl = nets[idx].routedWireLength;
+            if (wl > max) max = nets[idx].routedWireLength;
+
         }
-        if (allUnrouted) {
-            sum = 0;
-            for (int idx : balanceGroups[g]) sum += nets[idx].manhattanLength;
+        for (int idx : balanceGroups[g]) {
+            log() << "Net " << nets[idx].getName() << " target: " << max << std::endl;
+            nets[idx].balanceTarget = max;
         }
-        DBU avg = balanceGroups[g].empty() ? 0 : sum / static_cast<DBU>(balanceGroups[g].size());
-        for (int idx : balanceGroups[g]) nets[idx].balanceTarget = avg;
     }
 }
 
