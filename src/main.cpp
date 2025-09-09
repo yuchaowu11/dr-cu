@@ -74,6 +74,12 @@ void runISPD18Flow(const boost::program_options::variables_map& vm) {
     if (vm.count("fixOpenBySST")) {
         db::setting.fixOpenBySST = vm.at("fixOpenBySST").as<bool>();
     }
+    if (vm.count("lengthBalanceCoeff")) {
+        db::setting.lengthBalanceCoeff = vm.at("lengthBalanceCoeff").as<double>();
+    }
+    if (vm.count("lengthBalanceTolerance")) {
+        db::setting.lengthBalanceTolerance = vm.at("lengthBalanceTolerance").as<DBU>();
+    }
     // db
     if (vm.count("dbVerbose")) {
         db::setting.dbVerbose = db::VerboseLevelT::_from_string(vm.at("dbVerbose").as<std::string>().c_str());
@@ -177,6 +183,8 @@ int main(int argc, char* argv[]) {
                 ("wrongWayPointDensity", value<double>())
                 ("wrongWayPenaltyCoeff", value<double>())
                 ("fixOpenBySST", value<bool>())
+                ("lengthBalanceCoeff", value<double>())
+                ("lengthBalanceTolerance", value<DBU>())
                 ("dbVerbose", value<std::string>())
                 ("dbUsePoorViaMapThres", value<int>())
                 ("dbPoorWirePenaltyCoeff", value<double>())
