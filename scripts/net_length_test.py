@@ -30,7 +30,7 @@ def parse_def(def_file):
                 parts = line.split()
                 net_name = parts[1]
                 coords = []
-            for x, y in re.findall(r'\(\s*(\d+)\s+(\d+)\s*\)', line):
+            for x, y in re.findall(r'\(\s*(-?\d+)\s+(-?\d+)\s*\)', line):
                 coords.append((int(x), int(y)))
             if ';' in line and net_name:
                 lengths[net_name] = compute_length(coords)
